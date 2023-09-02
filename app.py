@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 
 client = MongoClient("mongodb://localhost:27017/")
-db = client["your_database_name"]
+db = client["HackTheClassRoom"]
 users_collection = db["users"]
 courses_collection = db["courses"]
 
@@ -65,21 +65,47 @@ def get_courses():
 
 @app.route('/courses/<course_id>', methods=['GET'])
 def get_course(course_id):
-    course = courses_collection.find_one({'_id': course_id}, {'_id': False})
-    if course:
-        return jsonify(course)
+    from bson.objectid import ObjectId
 
-    return jsonify({'message': 'Course not found'}), 404
+    try:
+        # Convert the course_id from the URL to ObjectId
+        course_id = ObjectId(course_id)
+        course = courses_collection.find_one({'_id': course_id}, {'_id': False})
+
+        if course:
+            return jsonify(course)
+        
+        return jsonify({'message': 'Course not found'}), 404
+
+    except Exception as e:
+        return jsonify({'message': 'Invalid course ID format'}), 400
+
 
 @app.route('/courses/add', methods=['POST'])
 def add_course():
     data = request.get_json()
+    
+    # Generate a unique course ID (e.g., using ObjectId from pymongo)
+    from bson.objectid import ObjectId
+    course_id = ObjectId()
+    
+    # Add a new course to MongoDB with the generated course_id
     new_course = {
+        '_id': course_id,
         'title': data['title'],
-        'description': data['description']
+        'description': data['description'],
+        'link': data['link']
     }
+
+    # Check if a course with the same title already exists
+    existing_course = courses_collection.find_one({'title': data['title']})
+    if existing_course:
+        return jsonify({'message': 'Course with the same title already exists'}), 400
+
     courses_collection.insert_one(new_course)
-    return jsonify({'message': 'Course added successfully'}), 201
+    return jsonify({'message': 'Course added successfully', 'course_id': str(course_id)}), 201
+
+
 
 @app.route('/courses/<course_id>/quiz', methods=['GET'])
 def get_course_quiz(course_id):
