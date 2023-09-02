@@ -3,19 +3,27 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token, get_jwt_identity
 )
 from pymongo import MongoClient
+from flask_limiter import Limiter
+import openai
+import json  
 
 app = Flask(__name__)
+limiter = Limiter(app)
 
 
-client = MongoClient("mongodb://localhost:27017/")
+open_ai_api = "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" # expired
+mongoURL = "mongodb+srv://tubelearn:1234@cluster0.cbfe3cv.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
+# mongodb+srv://tubelearn:xVVUiDfn9CGDoXql@hacktheclassroom.b1hbjh5.mongodb.net/?retryWrites=true&w=majority
+client = MongoClient(mongoURL)
 db = client["HackTheClassRoom"]
 users_collection = db["users"]
 courses_collection = db["courses"]
 
 
 app.config['SECRET_KEY'] = 'your-secret-key'
-jwt = JWTManager(app)
+jwt = JWTManager(app)     
 
+# sign up route tested and successful
 @app.route('/user/sign-up', methods=['POST'])
 def sign_up():
     data = request.get_json()
@@ -60,7 +68,7 @@ def current_user():
 
 @app.route('/courses', methods=['GET'])
 def get_courses():
-    courses = list(courses_collection.find({}, {'_id': False}))
+    courses = courses_collection.find({}) #, {'_id': False})
     return jsonify(courses)
 
 @app.route('/courses/<course_id>', methods=['GET'])
@@ -79,7 +87,6 @@ def get_course(course_id):
 
     except Exception as e:
         return jsonify({'message': 'Invalid course ID format'}), 400
-
 
 @app.route('/courses/add', methods=['POST'])
 def add_course():
@@ -105,13 +112,60 @@ def add_course():
     courses_collection.insert_one(new_course)
     return jsonify({'message': 'Course added successfully', 'course_id': str(course_id)}), 201
 
-
-
 @app.route('/courses/<course_id>/quiz', methods=['GET'])
+@limiter.limit("5 per minute")  
 def get_course_quiz(course_id):
-    #here the ai this can in to play to generate the question
-    quiz_data = {'questions': ['Question 1', 'Question 2'], 'answers': ['Answer 1', 'Answer 2']}
-    return jsonify(quiz_data)
+    from bson.objectid import ObjectId
+    course_id = ObjectId(course_id)
+
+    course = courses_collection.find_one({'_id': course_id})
+    if course:
+        description = course['description']
+        
+        # Define a valid JSON format for the questions
+        json_format = {
+            "question1": {
+                "question": "",
+                "option1": "",
+                "option2": "",
+                "option3": "",
+                "option4": "",
+                "correct_option": ""
+            },
+            "question2": {
+                "question": "",
+                "option1": "",
+                "option2": "",
+                "option3": "",
+                "option4": "",
+                "correct_option": ""
+            },
+            "question3": {
+                "question": "",
+                "option1": "",
+                "option2": "",
+                "option3": "",
+                "option4": "",
+                "correct_option": ""
+            }
+        }
+        
+        # Convert the JSON format to a string
+        json_format_str = json.dumps(json_format)
+
+        # prompt = f"""Here is the description of the course: {description}. Now, I want you to design three questions for this course in the following format:
+        # {json_format_str}
+        # Return only the JSON file, nothing else.
+        # """
+
+        prompt = f"""Provide four multiple-choice questions with answer options based on the following course description: {description} and return result in JSON format"""
+        model = "gpt-3.5-turbo"
+        openai.api_key = open_ai_api
+        response = openai.Completion.create(engine=model, prompt=prompt, max_tokens=150) 
+
+        generated_text = response.choices[0].text
+        return jsonify(json.loads(generated_text))  # Parse the generated JSON response
+    return jsonify({'message': 'Course not found'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
