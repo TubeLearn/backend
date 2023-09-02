@@ -1,5 +1,5 @@
-# backend
-This repository will contain all the backend code for the tubelearn website
+# TubeLearn Backend
+This repository will contain all the backend code for the TubeLearn website
 
 ## Python version
 - 3.10.x
@@ -9,7 +9,7 @@ This repository will contain all the backend code for the tubelearn website
 
 ## Follow these commands to run the project on your local machine :
 
-- Clone the project 
+Clone the project 
 ```
 git clone https://github.com/TubeLearn/backend.git
 ```
