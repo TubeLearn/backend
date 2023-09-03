@@ -12,7 +12,7 @@ limiter = Limiter(app)
 
 
 open_ai_api = "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" # expired
-mongoURL = "mongodb+srv://tubelearn:1234@cluster0.cbfe3cv.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
+mongoURL = "mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
 client = MongoClient(mongoURL)
 db = client["HackTheClassRoom"]
 users_collection = db["users"]
