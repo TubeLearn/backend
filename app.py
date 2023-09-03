@@ -6,11 +6,12 @@ from pymongo import MongoClient
 from flask_limiter import Limiter
 import openai
 import json  
-from flask_cors import CORS
+from flask_cors import CORS,cross_origin
 
 app = Flask(__name__)
 limiter = Limiter(app)
 
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173/"}})
 
 open_ai_api = "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" # expired
 mongoURL = "mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
@@ -19,7 +20,6 @@ db = client["HackTheClassRoom"]
 users_collection = db["users"]
 courses_collection = db["courses"]
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 app.config['SECRET_KEY'] = 'your-secret-key'
 jwt = JWTManager(app)     
 
