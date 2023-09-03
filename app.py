@@ -6,12 +6,12 @@ from pymongo import MongoClient
 from flask_limiter import Limiter
 import openai
 import json  
-# from flask_cors import CORS,cross_origin
+from flask_cors import CORS,cross_origin
 
 app = Flask(__name__)
 limiter = Limiter(app)
 
-# CORS(app, resources={r"/*": {"origins": "http://localhost:5173/"}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173/"}})
 
 open_ai_api = "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" # expired
 mongoURL = "mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
@@ -35,7 +35,9 @@ def sign_up():
         'username': data['username']
     }
     users_collection.insert_one(user_data)
-    return jsonify({'message': 'Registration successful'}), 201
+    response = jsonify({'message': 'Registration successful'})
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173/')
+    return response, 201
 
 @app.route('/user/login', methods=['POST'])
 def login():
