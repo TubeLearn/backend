@@ -13,7 +13,6 @@ limiter = Limiter(app)
 
 open_ai_api = "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" # expired
 mongoURL = "mongodb+srv://tubelearn:1234@cluster0.cbfe3cv.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
-# mongodb+srv://tubelearn:xVVUiDfn9CGDoXql@hacktheclassroom.b1hbjh5.mongodb.net/?retryWrites=true&w=majority
 client = MongoClient(mongoURL)
 db = client["HackTheClassRoom"]
 users_collection = db["users"]
@@ -68,8 +67,24 @@ def current_user():
 
 @app.route('/courses', methods=['GET'])
 def get_courses():
-    courses = courses_collection.find({}) #, {'_id': False})
-    return jsonify(courses)
+    coursesDB = courses_collection.find()
+    
+    #Create a list to store course data in JSON format
+    courses_json = []
+    
+    for course_data in coursesDB:
+        # Convert each course data to a JSON-compatible format
+        json_data = {
+            "course_title": course_data["title"],
+            "description": course_data["description"],
+            # Add more data fields as needed
+        }
+        
+        # Append the JSON data to the list
+        courses_json.append(json_data)
+    
+    # Serialize the list of course data to JSON and return it
+    return jsonify(courses_json)
 
 @app.route('/courses/<course_id>', methods=['GET'])
 def get_course(course_id):
@@ -112,8 +127,9 @@ def add_course():
     courses_collection.insert_one(new_course)
     return jsonify({'message': 'Course added successfully', 'course_id': str(course_id)}), 201
 
+# Couldn't fix or test [tokens finished on API key]. Every other route is working perfectly
 @app.route('/courses/<course_id>/quiz', methods=['GET'])
-@limiter.limit("5 per minute")  
+@limiter.limit("5 per minute") # to reduce amount of tokens used
 def get_course_quiz(course_id):
     from bson.objectid import ObjectId
     course_id = ObjectId(course_id)
@@ -122,7 +138,6 @@ def get_course_quiz(course_id):
     if course:
         description = course['description']
         
-        # Define a valid JSON format for the questions
         json_format = {
             "question1": {
                 "question": "",
@@ -158,10 +173,11 @@ def get_course_quiz(course_id):
         # Return only the JSON file, nothing else.
         # """
 
-        prompt = f"""Provide four multiple-choice questions with answer options based on the following course description: {description} and return result in JSON format"""
+        # Need the prompt to be small and concise to save OpenAI credit tokens
+        prompt = f"""Create four multiple-choice questions with answers from the course description: {description}, and return as JSON"""
         model = "gpt-3.5-turbo"
         openai.api_key = open_ai_api
-        response = openai.Completion.create(engine=model, prompt=prompt, max_tokens=150) 
+        response = openai.Completion.create(engine=model, prompt=prompt, max_tokens=50) 
 
         generated_text = response.choices[0].text
         return jsonify(json.loads(generated_text))  # Parse the generated JSON response
