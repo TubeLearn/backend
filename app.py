@@ -83,6 +83,13 @@ def get_video(course_id):
     return jsonify({'message': 'Course not found'}), 404
 
 
+@app.route('/videoinfo/<url>', methods=['GET'])
+def get_video_info(url):
+    from pytube import YouTube
+    yt = YouTube(url)
+    return jsonify({'title': yt.title, 'description': yt.description})
+
+
 @app.route('/user/current', methods=['GET'])
 @jwt_required()
 def current_user():
