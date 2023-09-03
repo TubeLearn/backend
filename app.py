@@ -122,7 +122,8 @@ def add_course():
     # Check if a course with the same title already exists
     existing_course = courses_collection.find_one({'title': data['title']})
     if existing_course:
-        return jsonify({'message': 'Course with the same title already exists'}), 400
+        existing_course_id = existing_course['_id']
+        return jsonify({'message': 'Course with the same title already exists', 'course_id': str(existing_course_id)}), 400
 
     courses_collection.insert_one(new_course)
     return jsonify({'message': 'Course added successfully', 'course_id': str(course_id)}), 201
