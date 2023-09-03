@@ -55,11 +55,15 @@ def login():
     user = users_collection.find_one({'email': email, 'password': password})
     if user:
         access_token = create_access_token(identity=str(user['_id']))
-        response = jsonify({'message': 'Login successful'})
+        response = jsonify({
+            'message': 'Login successful',
+            'access_token': access_token 
+        })
         response.set_cookie('access_token', access_token, httponly=True, samesite='None')
         return response
 
     return jsonify({'message': 'Invalid credentials'}), 401
+
 
 @app.route('/user/current', methods=['GET'])
 @jwt_required()
