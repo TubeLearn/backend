@@ -11,7 +11,7 @@ from flask_cors import CORS,cross_origin
 app = Flask(__name__)
 limiter = Limiter(app)
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173/"}})
+CORS(app)
 
 open_ai_api = "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" # expired
 mongoURL = "mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority" #currently filled with junk
@@ -22,6 +22,15 @@ courses_collection = db["courses"]
 
 app.config['SECRET_KEY'] = 'your-secret-key'
 jwt = JWTManager(app)     
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173/'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
 
 # sign up route tested and successful
 @app.route('/user/sign-up', methods=['POST'])
@@ -35,9 +44,7 @@ def sign_up():
         'username': data['username']
     }
     users_collection.insert_one(user_data)
-    response = jsonify({'message': 'Registration successful'})
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173/')
-    return response, 201
+    return jsonify({'message': 'Registration successful'})
 
 @app.route('/user/login', methods=['POST'])
 def login():
