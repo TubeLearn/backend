@@ -77,7 +77,7 @@ def get_courses():
         json_data = {
             "course_title": course_data["title"],
             "description": course_data["description"],
-            # Add more data fields as needed
+            "link": course_data["link"]
         }
         
         # Append the JSON data to the list
