@@ -103,7 +103,7 @@ def get_course(course_id):
     except Exception as e:
         return jsonify({'message': 'Invalid course ID format'}), 400
 
-@app.route('/courses/add', methods=['POST'])
+@app.route('/course/add', methods=['POST'])
 def add_course():
     data = request.get_json()
     
