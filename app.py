@@ -7,7 +7,8 @@ from flask_limiter import Limiter
 import openai
 import json  
 from flask_cors import CORS,cross_origin
-import pytube
+from pytube import Playlist
+
 app = Flask(__name__)
 limiter = Limiter(app)
 
@@ -65,7 +66,21 @@ def login():
     return jsonify({'message': 'Invalid credentials'}), 401
 
 
+@app.route('/coures/<course_id>/video', methods=['GET'])
+def get_video(course_id):
+    from bson.objectid import ObjectId
+    course_id = ObjectId(course_id)
 
+    course = courses_collection.find_one({'_id': course_id})
+    if course:
+        link = course['link']
+        playlist = Playlist(link)
+        video_links = list(playlist.video_urls)
+        print(video_links)
+        return jsonify({'video_links': video_links})
+ 
+
+    return jsonify({'message': 'Course not found'}), 404
 
 
 @app.route('/user/current', methods=['GET'])
