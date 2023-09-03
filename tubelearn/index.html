@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script src="https://www.youtube.com/iframe_api"></script>
+        
+<body>
+    <div id="player"></div>
+    <p>Watched Percentage: <span id="watchedPercentage">0%</span></p>
+    
+    <script>
+
+        var player;
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+      height: '360',
+      width: '640',
+      videoId: 'oTKtgI-loaU',
+      events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+
+  function onPlayerReady(event) {
+    // Start playing the video when the player is ready
+    event.target.playVideo();
+
+    // Set the volume to a specific value (0 to 100)
+    event.target.setVolume(50);
+
+    // Display a message indicating that the video is ready
+    console.log("Video is ready to play!");
+}
+
+  function onPlayerStateChange(event) {
+  if (event.data == YT.PlayerState.PLAYING) {
+    // The video is playing, start tracking progress
+    trackProgress();
+  } else {
+    // The video is paused or stopped, stop tracking progress
+    stopTracking();
+  }
+}
+
+var interval;
+var startTimestamp;
+var totalDuration = 0;
+
+function trackProgress() {
+  startTimestamp = new Date().getTime();
+  interval = setInterval(function() {
+    var currentTime = player.getCurrentTime();
+    totalDuration = player.getDuration();
+    var watchedPercentage = (currentTime / totalDuration) * 100;
+    document.getElementById("watchedPercentage").textContent = watchedPercentage.toFixed(2) + "%";
+  }, 5000); // Check every second
+  
+}
+
+function stopTracking() {
+  clearInterval(interval);
+  var currentTime = player.getCurrentTime();
+  totalDuration = player.getDuration();
+  var watchedPercentage = (currentTime / totalDuration) * 100;
+}
+
+    </script>
+
+</body>
+</html> 
