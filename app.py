@@ -7,7 +7,7 @@ from flask_limiter import Limiter
 import openai
 import json  
 from flask_cors import CORS,cross_origin
-
+import pytube
 app = Flask(__name__)
 limiter = Limiter(app)
 
@@ -65,6 +65,9 @@ def login():
     return jsonify({'message': 'Invalid credentials'}), 401
 
 
+
+
+
 @app.route('/user/current', methods=['GET'])
 @jwt_required()
 def current_user():
@@ -91,6 +94,7 @@ def get_courses():
     for course_data in coursesDB:
         # Convert each course data to a JSON-compatible format
         json_data = {
+            "course_id": str(course_data["_id"]),
             "course_title": course_data["title"],
             "description": course_data["description"],
             "link": course_data["link"]
