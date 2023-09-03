@@ -67,10 +67,12 @@ def current_user():
     current_user_id = get_jwt_identity()
     user = users_collection.find_one({'_id': current_user_id})
     if user:
+        access_token = create_access_token(identity=str(user['_id']))
         return jsonify({
             'userId': str(user['_id']),
             'email': user['email'],
-            'username': user['username']
+            'username': user['username'],
+            'access_token': access_token  
         })
 
     return jsonify({'message': 'User not found'}), 404
