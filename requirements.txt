@@ -31,6 +31,7 @@ Pygments==2.16.1
 PyJWT==2.8.0
 pymongo==4.5.0
 python-dotenv==1.0.0
+pytube==15.0.0
 requests==2.31.0
 rich==13.5.2
 tqdm==4.66.1
