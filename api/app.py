@@ -1,21 +1,24 @@
-from flask import Flask, request, jsonify
-from flask_bcrypt import Bcrypt
+from flask import Flask, jsonify
 from api.views import app_view
 from api.models.base import open_ai_api, courses_collection, users_collection
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token, get_jwt_identity
 )
+from flask_mongoengine import MongoEngine
 
 from flask_limiter import Limiter
 import openai
 import json  
 from flask_cors import CORS
-from pytube import Playlist
 
 app = Flask(__name__)
-limiter = Limiter(app)
-bcrypt = Bcrypt(app)
 app.register_blueprint(app_view)
+app.config['MONGODB_SETTINGS'] = [{
+    'db':'HackTheClassRoom',
+    'host': 'mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority',
+}]
+db = MongoEngine(app)
+limiter = Limiter(app)
 
 CORS(app)
 
@@ -109,4 +112,4 @@ def get_course_quiz(course_id):
     return jsonify({'message': 'Course not found'}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

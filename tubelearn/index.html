@@ -58,7 +58,7 @@ function trackProgress() {
     totalDuration = player.getDuration();
     var watchedPercentage = (currentTime / totalDuration) * 100;
     document.getElementById("watchedPercentage").textContent = watchedPercentage.toFixed(2) + "%";
-  }, 5000); // Check every second
+  }, 1); // Check every second
   
 }
 

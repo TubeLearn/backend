@@ -8,3 +8,4 @@ client = MongoClient(mongoURL)
 db = client["HackTheClassRoom"]
 users_collection = db["users"]
 courses_collection = db["courses"]
+videos_collection = db["videos"]

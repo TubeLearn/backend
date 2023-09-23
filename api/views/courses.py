@@ -3,7 +3,7 @@ from api.models.base import courses_collection
 from flask import jsonify, request
 from pytube import Playlist
 from bson.objectid import ObjectId
-
+from api.views.videos import add_videos
 
 
 
@@ -13,21 +13,10 @@ def get_video(course_id):
 
     course = courses_collection.find_one({'_id': course_id})
     if course:
-        video_links = []
-        link = course['link']
-        playlist = Playlist(link)
-        v = playlist.videos
-        
-        for video in v:
-            title = video.title
-            desc = video.description
-            thumbnail = video.thumbnail_url
-            length = video.length
-            data = {"title":title,"description":desc,"thumbnail":thumbnail,"length":length}
-            video_links.append(data)
-        return jsonify({'video_links': video_links})
+        video_id = course['video']
+        print(video_id)
+        return jsonify({'video_links': []})
  
-
     return jsonify({'message': 'Course not found'}), 404
 
 @app_view.route('/courses', methods=['GET'])
@@ -43,7 +32,8 @@ def get_courses():
             "course_id": str(course_data["_id"]),
             "course_title": course_data["title"],
             "description": course_data["description"],
-            "link": course_data["link"]
+            "link": course_data["link"],
+            "video": str(course_data["video"])
         }
         
         # Append the JSON data to the list
@@ -94,16 +84,16 @@ def add_course():
     course_id = ObjectId()
     p = Playlist(url)
     # Add a new course to MongoDB with the generated 
-    title = ""
-    desc = ""
+    title = ''
+    desc = ''
     try:
         title = p.title
     except:
-        title = ""
+        pass
     try:
         desc = p.description
     except:
-        desc = ""
+        pass
 
     new_course = {
         '_id': course_id,
@@ -115,8 +105,7 @@ def add_course():
     # Check if a course with the same title already exists
     existing_course = courses_collection.find_one({'title': new_course['title']})
     if existing_course:
-        existing_course_id = existing_course['_id']
-        return jsonify({'message': 'Course with the same title already exists', 'course_id': str(existing_course_id)}), 400
+        return jsonify({'message': 'Course with the same title already exists'}), 400
 
     courses_collection.insert_one(new_course)
-    return jsonify({'message': 'Course added successfully', 'course_id': str(course_id)}), 201
+    return jsonify({'message': 'Course added successfully'}), 201
