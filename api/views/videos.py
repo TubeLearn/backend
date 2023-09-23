@@ -58,7 +58,4 @@ def get_single_video(video_id):
        return jsonify({'video': data}), 200
     return jsonify({'message':'video not found'}), 404
 
-@app_view.route('/test', methods=['GET'])
-def get_videos_test():
-    videos = Video.objects()
-    return jsonify({"videos": videos}), 200
+
