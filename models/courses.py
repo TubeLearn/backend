@@ -1,8 +1,7 @@
 from mongoengine import *
 
 class Courses(Document):
-    title = StringField(required=True)
+    title = StringField(required=True, unique=True)
     description = StringField(required=True)
-    length = DecimalField(required=True)
     link = StringField(required=True)
     

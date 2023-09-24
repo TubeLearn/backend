@@ -1,10 +1,13 @@
 from flask import Flask, jsonify
 from api.views import app_view
-from api.models.base import open_ai_api, courses_collection, users_collection
+from models.base import open_ai_api
+from models.users import Users
+from models.courses import Courses
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token, get_jwt_identity
 )
 from flask_mongoengine import MongoEngine
+from bson.objectid import ObjectId
 
 from flask_limiter import Limiter
 import openai
@@ -41,11 +44,12 @@ def add_cors_headers(response):
 @jwt_required()
 def current_user():
     current_user_id = get_jwt_identity()
-    user = users_collection.find_one({'_id': current_user_id})
+    user_id = ObjectId(current_user_id)
+    user = Users.objects.get(id=user_id)
     if user:
-        access_token = create_access_token(identity=str(user['_id']))
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({
-            'userId': str(user['_id']),
+            'userId': str(user.id),
             'email': user['email'],
             'username': user['username'],
             'access_token': access_token  
@@ -62,9 +66,9 @@ def get_course_quiz(course_id):
     from bson.objectid import ObjectId
     course_id = ObjectId(course_id)
 
-    course = courses_collection.find_one({'_id': course_id})
+    course = Courses.objects.get(id=course_id)
     if course:
-        description = course['description']
+        description = course.description
         
         json_format = {
             "question1": {
@@ -112,4 +116,4 @@ def get_course_quiz(course_id):
     return jsonify({'message': 'Course not found'}), 404
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
