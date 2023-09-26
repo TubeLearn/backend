@@ -11,9 +11,9 @@ from models.videos import Videos
 @app_view.route('/courses/<course_id>/video', methods=['GET'])
 def get_video(course_id):
     try:
-        video = Videos.objects(course_id=course_id)
+        video = Videos.objects(course_id=course_id).first()
         if video:
-            return jsonify({'video_links': video})
+            return jsonify({'video_links': video.video})
         else:
             return add_videos(course_id)
     except Exception as e:
@@ -46,7 +46,7 @@ def delete_course(course_id):
     except Exception as e:
         return jsonify({'message': getattr(e, 'message', 'unable to delete course')}), 400
 
-@app_view.route('/course/add', methods=['POST'])
+@app_view.route('/courses/add', methods=['POST'])
 def add_course():
     data = request.get_json()
     url = data.get('link')
@@ -63,13 +63,13 @@ def add_course():
     try:
         title = p.title
     except:
-        pass 
-
+        pass
     course = Courses.objects(title=title).first()
     if course:
-        return jsonify({'message': 'Course with the same title already exists'}), 400
+        return jsonify({'message': 'Course already exists'}), 400
     try:
-        course = Courses(title=title.replace(" ","_"), description=desc, link=url).save()
+        course = Courses(title=title, description=desc, link=url)
+        course.save()
         return jsonify({'message': 'Course added successfully'}), 201
     except Exception as e:
         print(e)

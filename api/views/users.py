@@ -5,9 +5,10 @@ from flask_jwt_extended import create_access_token
 from utils.crypto import encode_password, verify_password
 from utils.validate import validate_dict
 from bson.objectid import ObjectId
+from datetime import datetime, timedelta
 
 
-    
+
 # sign up route tested and successful
 @app_view.route('user/sign-up', methods=['POST'])
 def sign_up():
@@ -48,7 +49,8 @@ def login():
     response = jsonify({
         'message': 'Login successful'
     })
-    response.set_cookie('access_token', access_token, httponly=True, samesite='None')
+    expiresAt = datetime.now() + timedelta(days=1)
+    response.set_cookie('access_token', access_token, httponly=True, samesite='None', expires=expiresAt)
     return response
 
 @app_view.route('user/all', methods=['GET'])

@@ -2,13 +2,13 @@ from api.views import app_view
 from flask import jsonify
 from bson.objectid import ObjectId
 from models.courses import Courses
-from pytube import Playlist
+from pytube import Playlist, YouTube
 from models.videos import Videos
 
-def try_catch_exception(fnc, video_id):
+def try_catch_exception(fnc):
     def wrapper(*args, **kwargs):
         try:
-            fnc(video_id)
+            return fnc(*args, **kwargs)
         except Exception as e:
             return jsonify({'message':getattr(e, 'message', 'course not deleted')}), 404
     return wrapper
@@ -20,21 +20,25 @@ def get_videos():
 
 @app_view.route('/videos/<course_id>', methods=['POST'])
 def add_videos(course_id):
+    current_video = Videos.objects(course_id=course_id)
+    if current_video:
+        return jsonify({'message':'video already exists'}), 404
     course = Courses.objects.get(id=course_id)
     if course:
         video_links = []
         link = course.link
         playlist = Playlist(link)
-        v = playlist.videos
+        v = playlist.video_urls
 
-        for video in v:
+        for video_url in v:
+            video = YouTube(video_url)
             title = video.title
             desc = video.description
             thumbnail = video.thumbnail_url
             length = video.length
-            data = {"title":title,"description":desc,"thumbnail":thumbnail,"length":length,'link':link}
+            data = {"title":title,"description":desc,"thumbnail":thumbnail,"length":length,'link':video_url}
             video_links.append(data)
-        Videos(video=video_links, course_id=course.id).save()
+        Videos(video=video_links, course_id=str(course.id)).save()
         return jsonify({'message':'Added videos to course','video_links':video_links}), 200
     return jsonify({'message':'course not found'}), 404
 

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from api.views import app_view
 from models.base import open_ai_api
 from models.users import Users
@@ -11,14 +11,13 @@ from bson.objectid import ObjectId
 
 from flask_limiter import Limiter
 import openai
-import json  
+import json
 from flask_cors import CORS
 
 app = Flask(__name__)
 app.register_blueprint(app_view)
 app.config['MONGODB_SETTINGS'] = [{
-    'db':'HackTheClassRoom',
-    'host': 'mongodb+srv://tubelearn:1234@cluster0.s19nica.mongodb.net/?retryWrites=true&w=majority',
+    'host': 'mongodb+srv://kevinkbet:b9mnc2W6OJYjv4PA@cluster0.ci8q496.mongodb.net/HackTheClassRoom',
 }]
 db = MongoEngine(app)
 limiter = Limiter(app)
@@ -26,7 +25,7 @@ limiter = Limiter(app)
 CORS(app)
 
 app.config['SECRET_KEY'] = 'your-secret-key'
-jwt = JWTManager(app)     
+jwt = JWTManager(app)
 
 @app.after_request
 def add_cors_headers(response):
@@ -36,25 +35,18 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
-
-    
-
-
 @app.route('/user/current', methods=['GET'])
 @jwt_required()
 def current_user():
-    current_user_id = get_jwt_identity()
-    user_id = ObjectId(current_user_id)
+    user_id = get_jwt_identity()
+    user_id = ObjectId(user_id)
     user = Users.objects.get(id=user_id)
     if user:
-        access_token = create_access_token(identity=str(user.id))
         return jsonify({
-            'userId': str(user.id),
+            'user_id': str(user.id),
             'email': user['email'],
-            'username': user['username'],
-            'access_token': access_token  
+            'username': user['username']
         })
-
     return jsonify({'message': 'User not found'}), 404
 
 
@@ -63,13 +55,12 @@ def current_user():
 @app.route('/courses/<course_id>/quiz', methods=['GET'])
 @limiter.limit("5 per minute") # to reduce amount of tokens used
 def get_course_quiz(course_id):
-    from bson.objectid import ObjectId
     course_id = ObjectId(course_id)
 
     course = Courses.objects.get(id=course_id)
     if course:
         description = course.description
-        
+
         json_format = {
             "question1": {
                 "question": "",
@@ -96,7 +87,7 @@ def get_course_quiz(course_id):
                 "correct_option": ""
             }
         }
-        
+
         # Convert the JSON format to a string
         json_format_str = json.dumps(json_format)
 
